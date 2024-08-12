@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paper Trading - Indian Stocks</title>
+    <style>
+        body {
+            font-family: DM-Sans, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 15px 0;
+            text-align: center;
+            position: relative;
+        }
+        main {
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .actions button {
+            margin: 2px;
+            padding: 5px 10px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+        }
+        .actions button.buy {
+            background-color: #007bff;
+        }
+        .actions button.sell {
+            background-color: #dc3545;
+        }
+        .actions button:hover {
+            opacity: 0.8;
+        }
+        .actions input {
+            width: 60px;
+            text-align: center;
+        }
+        .profit-loss {
+            color: #007bff;
+        }
+        .profit-loss.negative {
+            color: #dc3545;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            height: 60px;
+            bottom: 0;
+        }
+        .balance {
+            position: absolute;
+            left: 20px;
+            top: 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Paper Trading Platform</h1>
+        <div id="balance" class="balance">Balance: ₹3000.00</div>
+        <div id="totalProfitLoss" style="position: absolute; right: 20px; top: 15px; font-size: 16px;"></div>
+    </header>
+    <main>
+        <h2>Current Indian Stocks</h2>
+        <table id="cryptoTable">
+            <thead>
+                <tr>
+                    <th>Stocks</th>
+                    <th>Symbol</th>
+                    <th>Current Price</th>
+                    <th>Quantity</th>
+                    <th>Action</th>
+                    <th>Profit/Loss</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr data-symbol="RELI">
+                    <td>Reliance</td>
+                    <td>RELI</td>
+                    <td class="price" data-base-price="3000">₹3,000</td>
+                    <td><input type="number" id="qty-RELI" value="1" min="1"></td>
+                    <td class="actions">
+                        <button class="buy" onclick="buyCrypto('RELI')">Buy</button>
+                        <button class="sell" onclick="sellCrypto('RELI')">Sell</button>
+                    </td>
+                    <td class="profit-loss">0</td>
+                </tr>
+                <tr data-symbol="TATAMOTORS">
+                    <td>Tata Motors</td>
+                    <td>TATAMOTORS</td>
+                    <td class="price" data-base-price="2000">₹2,000</td>
+                    <td><input type="number" id="qty-TATAMOTORS" value="1" min="1"></td>
+                    <td class="actions">
+                        <button class="buy" onclick="buyCrypto('TATAMOTORS')">Buy</button>
+                        <button class="sell" onclick="sellCrypto('TATAMOTORS')">Sell</button>
+                    </td>
+                    <td class="profit-loss">0</td>
+                </tr>
+                <tr data-symbol="HDFCBANK">
+                    <td>HDFC Bank</td>
+                    <td>HDFCBANK</td>
+                    <td class="price" data-base-price="1500">₹1,500</td>
+                    <td><input type="number" id="qty-HDFCBANK" value="1" min="1"></td>
+                    <td class="actions">
+                        <button class="buy" onclick="buyCrypto('HDFCBANK')">Buy</button>
+                        <button class="sell" onclick="sellCrypto('HDFCBANK')">Sell</button>
+                    </td>
+                    <td class="profit-loss">0</td>
+                </tr>
+                <tr data-symbol="ITC">
+                    <td>ITC Limited</td>
+                    <td>ITC</td>
+                    <td class="price" data-base-price="500">₹500</td>
+                    <td><input type="number" id="qty-ITC" value="1" min="1"></td>
+                    <td class="actions">
+                        <button class="buy" onclick="buyCrypto('ITC')">Buy</button>
+                        <button class="sell" onclick="sellCrypto('ITC')">Sell</button>
+                    </td>
+                    <td class="profit-loss">0</td>
+                </tr>
+                <tr data-symbol="SBIN">
+                    <td>State BK of India</td>
+                    <td>SBIN</td>
+                    <td class="price" data-base-price="850">₹850</td>
+                    <td><input type="number" id="qty-SBIN" value="1" min="1"></td>
+                    <td class="actions">
+                        <button class="buy" onclick="buyCrypto('SBIN')">Buy</button>
+                        <button class="sell" onclick="sellCrypto('SBIN')">Sell</button>
+                    </td>
+                    <td class="profit-loss">0</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <footer>
+    </footer>
+
+    <script>
+        let portfolio = {};
+        let balance = 3000;  // Initialize balance to ₹3000
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = `Balance: ₹${balance.toFixed(2)}`;
+        }
+
+        function updatePrices() {
+            const rows = document.querySelectorAll('#cryptoTable tbody tr');
+            rows.forEach(row => {
+                const priceCell = row.querySelector('.price');
+                const basePrice = parseFloat(priceCell.getAttribute('data-base-price'));
+                const currentPrice = basePrice * (1 + (Math.random() * 0.04 - 0.02)); // Random price variation
+                priceCell.textContent = `₹${currentPrice.toFixed(2)}`;
+                priceCell.setAttribute('data-base-price', currentPrice.toFixed(2));
+                updateProfitLoss(row);
+            });
+            updateTotalProfitLoss(); // Update total profit/loss after prices change
+        }
+
+        function buyCrypto(symbol) {
+            const row = document.querySelector(`#cryptoTable tr[data-symbol="${symbol}"]`);
+            if (!row) {
+                console.error(`Row with symbol ${symbol} not found`);
+                return;
+            }
+
+            const priceCell = row.querySelector('.price');
+            const quantityInput = row.querySelector(`#qty-${symbol}`);
+            const quantity = parseInt(quantityInput.value);
+            const price = parseFloat(priceCell.textContent.replace('₹', ''));
+
+            const totalCost = price * quantity;
+
+            if (balance < totalCost) {
+                alert('Insufficient balance to buy');
+                return;
+            }
+
+            if (!portfolio[symbol]) {
+                portfolio[symbol] = { amount: 0, purchasePrice: 0 };
+            }
+
+            // Update balance
+            balance -= totalCost;
+            updateBalance();
+
+            // Calculate the new total cost and amount
+            const totalCostInPortfolio = portfolio[symbol].purchasePrice * portfolio[symbol].amount + totalCost;
+            const totalAmount = portfolio[symbol].amount + quantity;
+
+            // Update portfolio
+            portfolio[symbol].amount = totalAmount;
+            portfolio[symbol].purchasePrice = totalCostInPortfolio / totalAmount;
+            updateProfitLoss(row);
+            updateTotalProfitLoss(); // Update total profit/loss after buying
+        }
+
+        function sellCrypto(symbol) {
+            const row = document.querySelector(`#cryptoTable tr[data-symbol="${symbol}"]`);
+            if (!row) {
+                console.error(`Row with symbol ${symbol} not found`);
+                return;
+            }
+
+            const priceCell = row.querySelector('.price');
+            const quantityInput = row.querySelector(`#qty-${symbol}`);
+            const quantity = parseInt(quantityInput.value);
+            const price = parseFloat(priceCell.textContent.replace('₹', ''));
+
+            if (portfolio[symbol] && portfolio[symbol].amount >= quantity) {
+                const initialPrice = portfolio[symbol].purchasePrice;
+                const newAmount = portfolio[symbol].amount - quantity;
+                const totalCost = portfolio[symbol].purchasePrice * portfolio[symbol].amount - initialPrice * quantity;
+
+                // Update balance
+                balance += price * quantity;
+                updateBalance();
+
+                // Update portfolio
+                portfolio[symbol].amount = newAmount;
+                portfolio[symbol].purchasePrice = newAmount > 0 ? totalCost / newAmount : 0;
+
+                // Update the row and total profit/loss
+                updateProfitLoss(row);
+                updateTotalProfitLoss(); // Update total profit/loss after selling
+            } else {
+                alert('Not enough quantity to sell');
+            }
+        }
+
+        function updateProfitLoss(row) {
+            const symbol = row.dataset.symbol;
+            const priceCell = row.querySelector('.price');
+            const currentPrice = parseFloat(priceCell.textContent.replace('₹', ''));
+            const profitLossCell = row.querySelector('.profit-loss');
+
+            if (portfolio[symbol]) {
+                const initialPrice = portfolio[symbol].purchasePrice;
+                const amount = portfolio[symbol].amount;
+                const profitLoss = (currentPrice - initialPrice) * amount;
+                profitLossCell.textContent = `₹${profitLoss.toFixed(2)}`;
+                profitLossCell.className = `profit-loss ${profitLoss >= 0 ? '' : 'negative'}`;
+            } else {
+                profitLossCell.textContent = '₹0.00';
+                profitLossCell.className = 'profit-loss';
+            }
+        }
+
+        function updateTotalProfitLoss() {
+            let totalProfitLoss = 0;
+            const rows = document.querySelectorAll('#cryptoTable tbody tr');
+            rows.forEach(row => {
+                const symbol = row.dataset.symbol;
+                const priceCell = row.querySelector('.price');
+                const currentPrice = parseFloat(priceCell.textContent.replace('₹', ''));
+                const amount = portfolio[symbol]?.amount || 0;
+                const initialPrice = portfolio[symbol]?.purchasePrice || 0;
+                totalProfitLoss += (currentPrice - initialPrice) * amount;
+            });
+
+            const totalProfitLossElement = document.getElementById('totalProfitLoss');
+            totalProfitLossElement.textContent = `Total Profit/Loss: ₹${totalProfitLoss.toFixed(2)}`;
+            totalProfitLossElement.className = totalProfitLoss >= 0 ? '' : 'negative';
+        }
+
+        // Initialize prices and set event listeners for price updates
+        document.addEventListener('DOMContentLoaded', () => {
+            updatePrices();
+            updateBalance();
+            setInterval(updatePrices, 3000); // Update prices every 3 seconds
+        });
+    </script>
+</body>
+</html>
